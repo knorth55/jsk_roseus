@@ -107,10 +107,9 @@ The fourth example https://github.com/Affonso-Gui/jsk_roseus/blob/roseus_bt/rose
 
 Such port variables are initialized with an empty message instance and updated every time a new topic message arrives.
 
-To do this we add an action with the `topic_name` and `output_port` fields in the `<BehaviorTree/>` section, and declare it as a `<Subscriber/>` and specify `message_type` and optionally `message_field` in the `<TreeNodesModel/>` section.
-Only proper ROS message types are supported by subscriber nodes (e.g. `std_msgs/Int64` instead of `int64`).
+To do this we add a `<Subscriber/>` node, specifying the input ports `topic_name` and `message_type` and the output ports `output_port` and `received_port`. The `output_port` variable is initilized with an instance of the given message type and updated every time a new message is received. The `received_port` variable is a boolean initialized with false and set to true at every new message. Optionally, `message_field` can also be assigned.
 
-Note how we also add a step to verify and wait for messages.
+Only proper ROS message types are supported by subscriber nodes (e.g. `std_msgs/Int64` instead of `int64`).
 
 
 #### Run the code
@@ -244,11 +243,15 @@ https://github.com/Affonso-Gui/jsk_roseus/blob/roseus_bt/roseus_bt/sample/models
 
 To do this we declare the actions with the `<RemoteAction/>` and conditions with the `<RemoteCondition/>` tag in the `<TreeNodesModel/>`, and add a `host_name` and `host_port` field to them.
 
+Make sure that the rosbridge server is started after sourcing all of the package's messages and services. Setting a large `unregister_timeout` is also desirable to avoid problems described in https://github.com/knorth55/jsk_robot/pull/230 .
+
+
 #### Run the code
 
 Run the first rosbridge_server:
 ```bash
-roslaunch rosbridge_server rosbridge_websocket.launch
+# source package before running this
+roslaunch rosbridge_server rosbridge_websocket.launch unregister_timeout:=100000
 ```
 
 Run the first roseus server:
@@ -259,8 +262,9 @@ roseus t08_multimaster_localhost9090-action-server.l
 
 Run the second rosbridge_server:
 ```bash
+# source package before running this
 export ROS_MASTER_URI=http://localhost:11312
-roslaunch rosbridge_server rosbridge_websocket.launch port:=9091
+roslaunch rosbridge_server rosbridge_websocket.launch port:=9091 unregister_timeout:=100000
 ```
 
 Run the second roseus server:
