@@ -130,7 +130,29 @@
    ()
    (format *error-output* "~C[3~Cm[ WARN] dispose ~A~%~C[0m" #x1b 51 name-space #x1b)
    )
-  (:wait-for-server (&optional (timeout nil)) t)
+  (:wait-for-server
+   (&optional (timeout nil))
+   (let ((goal-topic (format nil "~A/goal" name-space))
+         (cancel-topic (format nil "~A/cancel" name-space))
+         (feedback-topic (format nil "~A/feedback" name-space))
+         (result-topic (format nil "~A/result" name-space)))
+     (ros::ros-debug "[~A] wait-for-server" name-space)
+     (ros::rate 10)
+     (let ((n-goal-topic (ros::get-num-subscribers goal-topic))
+           (n-cancel-topic (ros::get-num-subscribers cancel-topic))
+           (n-feedback-topic (ros::get-num-publishers feedback-topic))
+           (n-result-topic (ros::get-num-publishers result-topic)))
+       (send self :spin-once)
+       (ros::sleep)
+       (ros::ros-warn "[~A] num subscribers ~A ~d, ~A ~d" name-space
+		              goal-topic n-goal-topic
+		              cancel-topic n-cancel-topic)
+       (ros::ros-warn "[~A] num publishers ~A ~d, ~A ~d" name-space
+		              feedback-topic n-feedback-topic
+		              result-topic n-result-topic)
+       (null (and (= n-goal-topic 0) (= n-cancel-topic 0)
+                  (= n-feedback-topic 0) (= n-result-topic 0))))
+     ))
   (:send-goal
    (goal &key done-cb active-cb feedback-cb)
    (let ((now (ros::time-now)))
