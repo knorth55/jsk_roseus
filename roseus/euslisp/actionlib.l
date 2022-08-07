@@ -136,7 +136,7 @@
          (cancel-topic (format nil "~A/cancel" name-space))
          (feedback-topic (format nil "~A/feedback" name-space))
          (result-topic (format nil "~A/result" name-space))
-         (max-cnt 10) (cnt 0) (res nil))
+         (max-cnt 20) (cnt 0) (res nil))
      (ros::ros-debug "[~A] wait-for-server" name-space)
      (ros::rate 10)
      (while (and (> max-cnt cnt) (null res))
