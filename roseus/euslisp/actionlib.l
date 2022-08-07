@@ -152,10 +152,16 @@
          (ros::ros-warn "[~A] num publishers ~A ~d, ~A ~d" name-space
                         feedback-topic n-feedback-topic
                         result-topic n-result-topic)
-         (setq res
-               (null (and (= n-goal-topic 0) (= n-cancel-topic 0)
-                          (= n-feedback-topic 0) (= n-result-topic 0))))
+         (setq res (null (or (= n-goal-topic 0) (= n-cancel-topic 0)
+                             (= n-feedback-topic 0) (= n-result-topic 0))))
          (incf cnt)))
+     (if (null res)
+       (let ((n-goal-topic (ros::get-num-subscribers goal-topic))
+             (n-cancel-topic (ros::get-num-subscribers cancel-topic))
+             (n-feedback-topic (ros::get-num-publishers feedback-topic))
+             (n-result-topic (ros::get-num-publishers result-topic)))
+         (setq res (null (and (= n-goal-topic 0) (= n-cancel-topic 0)
+                              (= n-feedback-topic 0) (= n-result-topic 0))))))
      res))
   (:send-goal
    (goal &key done-cb active-cb feedback-cb)
