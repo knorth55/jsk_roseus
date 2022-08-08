@@ -160,6 +160,12 @@
              (n-cancel-topic (ros::get-num-subscribers cancel-topic))
              (n-feedback-topic (ros::get-num-publishers feedback-topic))
              (n-result-topic (ros::get-num-publishers result-topic)))
+         (ros::ros-warn "[~A] num subscribers ~A ~d, ~A ~d" name-space
+                        goal-topic n-goal-topic
+                        cancel-topic n-cancel-topic)
+         (ros::ros-warn "[~A] num publishers ~A ~d, ~A ~d" name-space
+                        feedback-topic n-feedback-topic
+                        result-topic n-result-topic)
          (setq res (null (and (= n-goal-topic 0) (= n-cancel-topic 0)
                               (= n-feedback-topic 0) (= n-result-topic 0))))))
      res))
