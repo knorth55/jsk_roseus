@@ -445,7 +445,8 @@ std::string GenTemplate::main_function_template(std::string roscpp_node_name,
     return fmt::format("  ros::init(argc, argv, \"{}\");", roscpp_node_name);
   };
   auto format_create_tree = [xml_filename]() {
-    return fmt::format("  auto tree = factory.createTreeFromFile(\"{}\");", xml_filename);
+    return fmt::format("  auto tree = factory.maybeCreateLayeredTreeFromFile(\"{}\");",
+                       xml_filename);
   };
 
   std::string fmt_string = 1 + R"(
@@ -463,14 +464,14 @@ int main(int argc, char **argv)
 
 %4%%5%%6%
 %3%
-  roseus_bt::register_blackboard_variables(&tree, init_variables);
+  roseus_bt::register_blackboard_variables(tree.get(), init_variables);
 
   std::string timestamp = std::to_string(ros::Time::now().toNSec());
   std::string log_filename(fmt::format("%7%", timestamp));
 
-  StdCoutLogger logger_cout(tree);
-  FileLogger logger_file(tree, log_filename.c_str());
-  PublisherZMQ publisher_zmq(tree);
+  StdCoutLogger logger_cout(*tree);
+  FileLogger logger_file(*tree, log_filename.c_str());
+  PublisherZMQ publisher_zmq(*tree);
 
   NodeStatus status = NodeStatus::IDLE;
 
@@ -480,7 +481,7 @@ int main(int argc, char **argv)
     while( ros::ok() && (status == NodeStatus::IDLE || status == NodeStatus::RUNNING))
       {
         ros::spinOnce();
-        status = tree.tickRoot();
+        status = tree->tickRoot();
         ros::Duration sleep_time(0.005);
         sleep_time.sleep();
       }
