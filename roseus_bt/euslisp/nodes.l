@@ -101,7 +101,8 @@
                   (print "Exitting...")
                   (if cancel-cb
                       (funcall cancel-cb (send c :server) (send c :goal)))
-                  (send self :set-preempted)
+                  (when (send self :is-active)
+                    (send self :set-preempted))
                   (ros::ros-info ";; Stashing current progress")
                   ;; Wait until has new goal and is available
                   (until (or goal (> (send timer :stop) timeout))
