@@ -79,7 +79,7 @@
 (defmethod resumable-action-node
   (:init (ns spec &key execute-cb preempt-cb ((:resume-cb rsm-cb)) accept-cb groupname
              ((:monitor-groupname monitor-gn))
-             ((:resume-if res-if) 'check-goal) ((:timeout tmout) 10))
+             ((:resume-if res-if) 'check-goal) ((:timeout tmout) 1.0))
     (assert (numberp tmout))
     (setq resume-if res-if)
     (setq timeout tmout)
