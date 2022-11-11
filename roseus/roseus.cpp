@@ -178,6 +178,7 @@ public:
   }
   boost::shared_ptr<ros::NodeHandle> node;
   boost::shared_ptr<ros::Rate> rate;
+  boost::shared_mutex mutex;
   SharedMap<string, boost::shared_ptr<Publisher> > mapAdvertised; ///< advertised topics
   SharedMap<string, boost::shared_ptr<Subscriber> > mapSubscribed; ///< subscribed topics
   SharedMap<string, boost::shared_ptr<ServiceServer> > mapServiced; ///< subscribed topics
@@ -190,6 +191,7 @@ static RoseusStaticData s_staticdata;
 static bool s_bInstalled = false;
 #define s_node s_staticdata.node
 #define s_rate s_staticdata.rate
+#define s_mutex s_staticdata.mutex
 #define s_mapAdvertised s_staticdata.mapAdvertised
 #define s_mapSubscribed s_staticdata.mapSubscribed
 #define s_mapServiced s_staticdata.mapServiced
@@ -757,7 +759,12 @@ pointer ROSEUS_SPIN(register context *ctx,int n,pointer *argv)
   while (ros::ok()) {
     breakck;
     ros::spinOnce();
-    s_rate->sleep();
+    boost::shared_ptr<ros::Rate> rate;
+    {
+      boost::shared_lock<boost::shared_mutex> lock(s_mutex);
+      rate = s_rate;
+    }
+    rate->sleep();
   }
   return (NIL);
 }
@@ -811,14 +818,22 @@ pointer ROSEUS_RATE(register context *ctx,int n,pointer *argv)
   numunion nu;
   ckarg(1);
   float timeout=ckfltval(argv[0]);
-  s_rate.reset(new ros::Rate(timeout));
+  {
+    boost::unique_lock<boost::shared_mutex> lock(s_mutex);
+    s_rate.reset(new ros::Rate(timeout));
+  }
   return(T);
 }
 
 pointer ROSEUS_SLEEP(register context *ctx,int n,pointer *argv)
 {
   isInstalledCheck;
-  s_rate->sleep();
+  boost::shared_ptr<ros::Rate> rate;
+  {
+    boost::shared_lock<boost::shared_mutex> lock(s_mutex);
+    rate = s_rate;
+  }
+  rate->sleep();
   return (T);
 }
 
